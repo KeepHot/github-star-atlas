@@ -1,0 +1,9 @@
+.runtime/
+.builds/
+dist
+.dist-next
+__pycache__/
+*.pyc
+.env
+
+*.lock

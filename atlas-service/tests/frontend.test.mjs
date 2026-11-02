@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
+const context=vm.createContext({URL,Date});vm.runInContext(readFileSync(new URL('../web/app.js',import.meta.url),'utf8'),context);const f=context.AtlasFunctions;
+const rows=[{rank:2,name:'b/demo',stars:500,language:'Python',category:'ai',summary:'智能搜索',original:'Search tool'},{rank:1,name:'a/demo',stars:100,language:'Go',category:'dev',summary:'开发工具'}];
+test('search covers Chinese, raw text, full name and language with combined filters',()=>{for(const q of ['智能','SEARCH','b/demo','Python'])assert.equal(f.selectRows(rows,{query:q}).length,1);assert.equal(f.selectRows(rows,{query:'智能',language:'Go'}).length,0);assert.equal(f.selectRows(rows,{category:'ai',language:'Python'}).length,1);});
+test('official rank differs from cumulative star order; no mutation',()=>{assert.equal(f.selectRows(rows)[0].name,'a/demo');assert.equal(f.selectRows(rows,{sort:'stars'})[0].name,'b/demo');assert.equal(rows[0].rank,2);});
+test('pagination caps first paint and clamps after filters',()=>{const many=Array.from({length:2000},(_,rank)=>({rank}));assert.equal(f.paginate(many).rows.length,36);assert.equal(f.paginate(many,10000).page,56);assert.equal(f.paginate([],99).page,1);});
+test('trend scope independent from top; missing data safe',()=>{const d={repositories:rows,trending:{daily:{repositories:[{name:'outside/top'}]}}};assert.equal(f.dataset(d,'daily')[0].name,'outside/top');assert.equal(f.dataset(null,'weekly').length,0);});
+test('untrusted descriptions and links cannot become markup or executable URLs',()=>{assert.equal(f.esc('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;');assert.equal(f.safeURL('javascript:alert(1)'),'#');assert.equal(f.safeURL('https://github.com.evil.com/a'),'#');assert.equal(f.safeURL('https://github.com/a/b'),'https://github.com/a/b');});
+test('CSV quotes multiline strings, protects spreadsheet formulas and preserves unknown growth',()=>{const output=f.csv([{name:'=CMD()',summary:'a,"b"\nc',rank:1,periodStars:null}],'daily');assert.ok(output.includes('"\'=CMD()"'));assert.ok(output.includes('a,""b""\nc'));assert.ok(output.includes('每日趋势'));});
+test('freshness distinguishes missing, stale and failed snapshots',()=>{assert.equal(f.freshness(null),'missing');assert.equal(f.freshness('bad'),'missing');assert.equal(f.freshness('2026-01-01T00:00:00Z','error',Date.parse('2026-01-01T01:00:00Z')),'error');assert.equal(f.freshness('2026-01-01T00:00:00Z','ok',Date.parse('2026-01-01T07:00:00Z')),'stale');});

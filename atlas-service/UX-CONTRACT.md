@@ -1,0 +1,18 @@
+# Observable UI contract
+
+Authority: `docs/2026-11-03-service-design.md`, including the schemaVersion 1 JSON contract. Visual decisions: `DESIGN.md`. This read-only static app has no authentication, billing, deletion, permission changes or sensitive input.
+
+- The browser initializes only from `window.ATLAS_DATA`; no fetch is required. Build injection replaces `<!-- ATLAS_DATA -->` before `./app.js`. The source uses `./styles.css`; inline builds can replace both assets.
+- Top uses `repositories`; periods use only their matching `trending[period].repositories`, without joining/filtering against Top. Source link and collection time describe the active dataset. Cumulative stars never stand in for period growth.
+- Trend default order is official `rank`, including after switching periods. Optional cumulative-Star/name sorts explicitly say what they sort. Null history growth and null official period growth display 未知.
+- Category and language filters combine with case-insensitive local search across name, summary, original and language. Search is composition-safe; clear acts immediately and restores input focus. The reset button clears query/category/language/sort/page, preserving selected view/layout. A missing language on view switch resets to all languages.
+- The URL fragment stores view, layout, query, category, language, sort and page. Initial load restores it. These are public repository discovery preferences, not sensitive data. Browser back/forward navigation between filter edits is not created because changes replace the fragment.
+- First paint is bounded to 36 projects. Filtering clamps the current page; pagination focuses the results heading. Page boundaries disable the corresponding button. Counts distinguish all dataset rows from filtered rows.
+- CSV exports every filtered row across pages of the active dataset. Button, filename and success notice identify scope and row count. It quotes multiline content and mitigates formula prefixes. Empty results disable export.
+- Every summary identifies editorial Chinese versus original description. Editorial summaries expose original text in native details where available. Untrusted text is escaped and repository links allow only HTTPS github.com.
+- Missing data shows no spinner and explicit recovery: reload after collection or choose another dataset. Failed/stale snapshots keep their records visible with a persistent warning. Age over six hours is stale. Missing/invalid timestamp is unknown. Partial global collection status is called out even when active source is usable. No continuously loading state is fabricated.
+- Reload uses ordinary page navigation; hosted pages read the newest published embedded snapshot, while standalone offline files preserve their saved snapshot. The UI does not claim a reload triggers network collection.
+- Sidebar navigation uses semantic buttons with pressed state; native select keyboard behavior and popup appearance are accepted. All interactive controls have focus outlines; skip link jumps to the results heading. Mobile uses horizontal scrolling navigation, single-column cards and natural document scroll. There are no hover-only essential controls or modal layers.
+- Time formatting is zh-CN with explicit Asia/Shanghai timezone and visible UTC+8 context. Numbers use zh-CN formatting. CSS honors reduced motion and forced colors. External repository/source links open a new tab with noopener/noreferrer.
+
+Validation: `node --test tests/frontend.test.mjs`; desktop/mobile browser integration checks are performed by the parent task against the built snapshot. Screenshot or interactive browser success must not be inferred from static tests.
