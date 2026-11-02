@@ -27,9 +27,9 @@ python3 scripts/manage.py uninstall
 
 ## GitHub Pages
 
-未创建或推送任何远程仓库。需要自行将本项目置于 GitHub 仓库并在 Settings → Pages 选择 GitHub Actions。免费 Pages 通常要求公开仓库，上传前检查仓库其他文件是否适合公开。
+公开仓库已部署至 https://github.com/KeepHot/github-star-atlas ，Pages 使用 GitHub Actions 构建发布。免费 Pages 通常要求公开仓库，上传前检查仓库其他文件是否适合公开。
 
-`.github/workflows/atlas-pages.yml` 每三小时的第 17 分钟执行，也可 Actions → GitHub Star Atlas Pages → Run workflow 手动运行。GitHub 定时可能延迟。工作流先测试，再用内置 `GITHUB_TOKEN` 采集和构建；成功后只提交公开最新数据和历史，再部署静态产物。并发组串行执行，避免多个定时/手动部署交错；任何采集、验证或推送失败均不部署，现有 Pages 保持可用。仓库须允许 Actions 写 contents 和部署 Pages；无需个人 token。Pages 是静态托管，更新依赖 Actions，不会运行本机 Python 服务。
+`.github/workflows/atlas-pages.yml` 每三小时的第 17 分钟执行，也可 Actions → GitHub Star Atlas Pages → Run workflow 手动运行。GitHub 定时可能延迟。工作流先测试，再用内置 `GITHUB_TOKEN` 采集和构建；成功后只提交公开最新数据和历史，再部署静态产物。并发组串行执行，避免多个定时/手动部署交错；任何采集、验证或推送失败均不部署，现有 Pages 保持可用。工作流按需声明 contents: write、pages: write、id-token: write；不需要修改仓库默认工作流权限，也无需个人 token。Pages 是静态托管，更新依赖 Actions，不会运行本机 Python 服务。
 
 本机采集可使用现有系统认证或匿名访问；不把个人 token 写入前端、仓库或 launchd 配置。只有公开数据进入 Pages 产物。
 
@@ -38,7 +38,7 @@ python3 scripts/manage.py uninstall
 根目录 `deliverables/GitHub-Star-Atlas-Pages.zip` 仅包含本服务的源码、测试、公开数据和工作流，解压后直接作为新仓库的根目录使用。它不包含个人凭据、本机运行状态或旧日报项目。
 
 1. 新建 GitHub 公开仓库，把解压后的全部文件（包括 `.github/`）提交到默认分支。
-2. 仓库 Settings → Actions → General → Workflow permissions 允许工作流读写（用于保留公开历史快照）。
+2. 保留仓库默认工作流权限；发布工作流已声明保存历史与部署所需权限。
 3. Settings → Pages → Build and deployment → Source 选择 **GitHub Actions**。
 4. Actions → **GitHub Star Atlas Pages** → **Run workflow**；部署完成后打开 Deploy 步骤给出的 `https://用户名.github.io/仓库名/`。
 
