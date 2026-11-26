@@ -49,9 +49,11 @@ jobs:
       - name: Stage dereferenced static artifact
         run: cp -RL atlas-service/dist atlas-pages-public
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: atlas-pages-public/
+      - name: Wait for artifact index propagation
+        run: sleep 5
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
